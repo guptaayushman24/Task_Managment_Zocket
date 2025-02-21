@@ -8,7 +8,7 @@ services:
     envVars:
       - key: PORT
         value: 8080
-      - key: MONGO_URI
+      - key: "mongodb+srv://guptaayushman24:u3xSISNW8S1w4jcW@cluster0.4b48d.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
         sync: false
-      - key: JWT_SECRET
+      - key: "abcd@1234"
         sync: false
