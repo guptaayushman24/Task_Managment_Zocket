@@ -1,6 +1,6 @@
 module ZOCKET
 
-go 1.24.0
+go 1.21
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
