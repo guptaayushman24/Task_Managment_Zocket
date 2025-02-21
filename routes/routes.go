@@ -10,10 +10,10 @@ import (
 // Register function to set up routes
 func RegisterRoutes(app *fiber.App) {
 	taskRoutes := app.Group("/")
-	taskRoutes.Post("/Signin", controllers.Signin)
-	taskRoutes.Post("/Signup", controllers.Userprofile)
-	taskRoutes.Post("/createtask", middleware.JWTMiddleware, controllers.CreateTask)
-	taskRoutes.Get("/getalltask", middleware.JWTMiddleware, controllers.GetTasks)
-	taskRoutes.Post("/assignedtask", middleware.JWTMiddleware, controllers.AssignedTask)
-	taskRoutes.Post("/deletetask", middleware.JWTMiddleware, controllers.Deletethetask)
+	taskRoutes.Post("https://random-leda-sudent1-cacf1171.koyeb.app/Signin", controllers.Signin)
+	taskRoutes.Post("https://random-leda-sudent1-cacf1171.koyeb.app/Signup", controllers.Userprofile)
+	taskRoutes.Post("https://random-leda-sudent1-cacf1171.koyeb.app/createtask", middleware.JWTMiddleware, controllers.CreateTask)
+	taskRoutes.Get("https://random-leda-sudent1-cacf1171.koyeb.app/getalltask", middleware.JWTMiddleware, controllers.GetTasks)
+	taskRoutes.Post("https://random-leda-sudent1-cacf1171.koyeb.app/assignedtask", middleware.JWTMiddleware, controllers.AssignedTask)
+	taskRoutes.Post("https://random-leda-sudent1-cacf1171.koyeb.app/deletetask", middleware.JWTMiddleware, controllers.Deletethetask)
 }
