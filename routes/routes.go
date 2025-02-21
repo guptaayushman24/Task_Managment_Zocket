@@ -11,7 +11,7 @@ import (
 func RegisterRoutes(app *fiber.App) {
 	taskRoutes := app.Group("/")
 	taskRoutes.Post("/Signin", controllers.Signin)
-	taskRoutes.Post("/post", controllers.Userprofile)
+	taskRoutes.Post("/Signup", controllers.Userprofile)
 	taskRoutes.Post("/createtask", middleware.JWTMiddleware, controllers.CreateTask)
 	taskRoutes.Get("/getalltask", middleware.JWTMiddleware, controllers.GetTasks)
 	taskRoutes.Post("/assignedtask", middleware.JWTMiddleware, controllers.AssignedTask)

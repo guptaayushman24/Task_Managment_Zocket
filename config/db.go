@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -43,4 +44,23 @@ func ConnectDB() {
 // GetCollection returns a reference to a MongoDB collection
 func GetCollection(collectionName string) *mongo.Collection {
 	return DB.Collection(collectionName)
+}
+
+// Unique index to ensure no duplicate email can be added at the time of the Signup
+// Ensure unique index on email field
+func EnsureUniqueIndex(collection *mongo.Collection) {
+	indexModel := mongo.IndexModel{
+		Keys:    bson.M{"email": 1},              // Create index on email field
+		Options: options.Index().SetUnique(true), // Make it unique
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := collection.Indexes().CreateOne(ctx, indexModel)
+	if err != nil {
+		log.Fatal("Could not create index:", err)
+	} else {
+		log.Println("✅ Unique index on email created successfully!")
+	}
 }

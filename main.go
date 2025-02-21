@@ -15,6 +15,11 @@ func main() {
 	// Register routes
 	routes.RegisterRoutes(r)
 
+	// Ensuting the unique index on mail
+
+	collection := database.GetCollection("users")
+	database.EnsureUniqueIndex(collection)
+
 	// Start the server
 	r.Listen(":8000")
 }

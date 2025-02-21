@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -29,6 +30,16 @@ func CreateTask(c *fiber.Ctx) error {
 
 	// Get collection
 	taskCollection := database.GetCollection("tasks")
+
+	// Checking if title already exist
+	err1 := taskCollection.FindOne(context.TODO(), bson.M{"title": task.Title}).Decode(&task)
+	if err1 == nil {
+		// If  find an existing user, return an error
+		return c.Status(400).JSON(fiber.Map{"message": "Title already exists"})
+	} else if err1 != mongo.ErrNoDocuments {
+		// Handle any other database error
+		return c.Status(500).JSON(fiber.Map{"message": "Database error", "error": err1.Error()})
+	}
 
 	// Insert into MongoDB
 	_, err := taskCollection.InsertOne(context.TODO(), task)
@@ -76,22 +87,35 @@ func AssignedTask(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"message": "Invalid request body", "error": err.Error()})
 	}
 	taskCollection := database.GetCollection("tasks")
-	// Define projection to include only required fields
-	projection := bson.M{
-		"title":       1,
-		"description": 1,
-		"status":      1,
-		"priority":    1,
-		"_id":         0, // Exclude MongoDB _id field
+	// Define aggregation pipeline to sort by priority manually
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{"assignedto": taskassignedto.Assignedto}}},
+		{{Key: "$addFields", Value: bson.M{
+			"priority_order": bson.M{
+				"$switch": bson.M{
+					"branches": []bson.M{
+						{"case": bson.M{"$eq": []interface{}{"$priority", "High"}}, "then": 1},
+						{"case": bson.M{"$eq": []interface{}{"$priority", "Medium"}}, "then": 2},
+						{"case": bson.M{"$eq": []interface{}{"$priority", "Low"}}, "then": 3},
+					},
+					"default": 4, // Default value if priority is missing
+				},
+			},
+		}}},
+		{{Key: "$sort", Value: bson.M{"priority_order": 1}}}, // Sort ascending (High -> Medium -> Low)
+		{{Key: "$project", Value: bson.M{
+			"title":       1,
+			"description": 1,
+			"status":      1,
+			"priority":    1,
+			"_id":         0, // Exclude MongoDB _id field
+		}}},
 	}
 
-	// Find all tasks with the projection
-	cursor, err := taskCollection.Find(context.TODO(), bson.M{"assignedto": taskassignedto.Assignedto}, &options.FindOptions{
-		Projection: projection,
-	})
+	// Aggregation query
+	cursor, err := taskCollection.Aggregate(context.TODO(), pipeline)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"message": "Failed to retrieve tasks", "error": err.Error()})
-
 	}
 
 	var tasks []models.Task

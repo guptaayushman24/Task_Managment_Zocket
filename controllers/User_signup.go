@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // GenerateJWT function
@@ -94,7 +95,15 @@ func Userprofile(c *fiber.Ctx) error {
 
 	// Getting the collection
 	userCollection := database.GetCollection("Zocket")
-
+	// Checking if email already exist
+	err1 := userCollection.FindOne(context.TODO(), bson.M{"email": user.Email}).Decode(&user)
+	if err1 == nil {
+		// If  find an existing user, return an error
+		return c.Status(400).JSON(fiber.Map{"message": "Email already exists"})
+	} else if err1 != mongo.ErrNoDocuments {
+		// Handle any other database error
+		return c.Status(500).JSON(fiber.Map{"message": "Database error", "error": err.Error()})
+	}
 	// Inserting the data into mongodb
 	result, err := userCollection.InsertOne(context.TODO(), user)
 	if err != nil {
